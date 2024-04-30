@@ -1,11 +1,32 @@
 const express = require("express");
 const app = express();
 
-//prefered port or 3000
-const port = process.env.port | 3000;
+const {MongoClient} = require("mongodb");
 
-//mysql compatability
-const mysql = require("mysql");
+//prefered port or 27017
+const port = process.env.port | 27017;
+
+//database connection
+const url = "mongodb://localhost:" + port;
+const user = new MongoClient(url);
+const dbName = process.env.DB_DATABASE;
+
+async function establishConnection() {
+    try {
+        await user.connect();
+        console.log("connection established")   
+    } catch (error) {
+        console.log("USER CONNECTION FAILED");
+        return
+    }
+    const dbConnection = user.db(dbName);
+    let content = dbConnection.collection("jobs");
+    console.log(content);
+}
+
+await establishConnection();
+
+/*
 
 //opens to cross origin
 const cors = require("cors");
@@ -245,3 +266,4 @@ async function validate(query, mode) {
         return "";
     }
 }
+*/
