@@ -5,6 +5,7 @@ const app = express();
 const {MongoClient} = require("mongodb");
 require("dotenv").config({path: "stuff.env"});
 
+
 //opens to cross origin
 const cors = require("cors");
 app.use(cors());
@@ -16,11 +17,32 @@ app.use(express.json());
 const port = process.env.port | 27017;
 
 //database connection
-const url = "mongodb://localhost:" + port;
+const url = process.env.DB_HOST + ":" + port;
 const user = new MongoClient(url);
 const dbName = process.env.DB_DATABASE;
 
-async function establishConnection() {
+//mongoose for schema and stuff
+const mongoose = require("mongoose");
+mongoose
+    .connect(url)
+    .then(() => {console.log("connected!")})
+    .catch((error) => console.log("ERROR: " + error));
+
+//schema
+const jobSchema = mongoose.Schema({
+    _id: Number,
+    companyname: String,
+    jobtitle: String,
+    startdate: Date,
+    enddate: Date
+});
+
+
+//model
+const job = mongoose.model("job", jobSchema);
+
+//initial connect for debugging mostly
+async function initialConnect() {
 
     //tries to connect
     try {
@@ -47,10 +69,9 @@ async function establishConnection() {
         ])
         console.log("populated with basic content")
     }
-    console.log(val);
 }
 
-establishConnection();
+initialConnect();
 
 /*
 
