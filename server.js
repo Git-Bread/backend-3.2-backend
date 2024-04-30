@@ -1,7 +1,16 @@
 const express = require("express");
 const app = express();
 
+//mongo db and dotenv stuff
 const {MongoClient} = require("mongodb");
+require("dotenv").config({path: "stuff.env"});
+
+//opens to cross origin
+const cors = require("cors");
+app.use(cors());
+
+//express middleware to convert json to javascript objects, neat
+app.use(express.json());
 
 //prefered port or 27017
 const port = process.env.port | 27017;
@@ -12,6 +21,8 @@ const user = new MongoClient(url);
 const dbName = process.env.DB_DATABASE;
 
 async function establishConnection() {
+
+    //tries to connect
     try {
         await user.connect();
         console.log("connection established")   
@@ -19,71 +30,30 @@ async function establishConnection() {
         console.log("USER CONNECTION FAILED");
         return
     }
+
+    //gets the database
     const dbConnection = user.db(dbName);
+
+    //default call to collection
     let content = dbConnection.collection("jobs");
-    console.log(content);
+
+    //populates if empty
+    let val = await content.find().toArray();
+    if (val.length == 0) {
+        await content.insertMany([
+            {_id: 1, companyname: "Glassbolaget", jobtitle: "Glassman", startdate:"2022-02-14", enddate:"2022-08-17"},
+            {_id: 2, companyname: "Glassbolaget2", jobtitle: "GlassSergant", startdate:"2023-02-14", enddate:"2022-08-17"},
+            {_id: 3, companyname: "Glassbolaget3", jobtitle: "GlassGeneral", startdate:"2024-01-14", enddate:"2024-04-24"}
+        ])
+        console.log("populated with basic content")
+    }
+    console.log(val);
 }
 
-await establishConnection();
+establishConnection();
 
 /*
 
-//opens to cross origin
-const cors = require("cors");
-app.use(cors());
-
-//express middleware to convert json to javascript objects, neat
-app.use(express.json());
-
-app.listen(port, () => {console.log("running")});
-
-//.env configuration
-require("dotenv").config({path: "stuff.env"});
-
-//initial mysql call for creating database if it dosent exist
-const initial = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD
-});
-
-//adds the database, probaly not needed in this case but might be nice
-initial.connect();
-initial.query("CREATE DATABASE IF NOT EXISTS Labb2Backend",function(error){if (error) {throw error;}})
-initial.end()
-
-//the "real" database connection which will be used for data storage, datestrings to combat full empty timestamps from returning, i dont get why they send that stuff when i timestamp and similar formats exist
-const connection = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-    dateStrings: true
-});
-
-connection.connect();
-
-//checks if its running
-//makes sure the table exists
-connection.query("CREATE TABLE IF NOT EXISTS Jobs (id Int NOT NULL PRIMARY KEY, companyname varchar(20), jobtitle varchar(20), startdate DATE, enddate DATE)", function(error){if (error) {throw error;}})
-
-//tries initial query and if empty populates
-connection.query("SELECT id FROM Jobs", function(error, results) {
-    if (error) {
-        throw error;
-    }
-    //populates if empty
-    if (!results[0]) {
-        create();
-    }
-})
-
-//Template objects
-function create() {
-    connection.query("INSERT Jobs VALUES (1,'Glassbolaget','Glassman','2022-02-14','2022-08-17')",function(error){if (error) {throw error;}})
-    connection.query("INSERT Jobs VALUES (2,'Glassbolaget2','GlassSergant','2023-02-14','2022-08-17')",function(error){if (error) {throw error;}})
-    connection.query("INSERT Jobs VALUES (3,'Glassbolaget3','GlassGeneral','2024-01-14','2024-04-24')",function(error){if (error) {throw error;}})
-}
 
 //generall function to ask database questions
 function ask(question){
