@@ -59,13 +59,6 @@ async function initialConnect() {
 
 initialConnect();
 
-//creates a new database row with information
-async function add(values){
-    connection.query("INSERT Jobs VALUES ('" + values.body._id + "','"+ values.body.companyname +"','"+ values.body.jobtitle +"','"+ values.body.startdate + "','"+ values.body.enddate+"')",function(error){if (error) {throw error;}});
-    return;
-}
-
-
 //gets all data
 app.get("/data", async (req, res) => {
     res.send(await job.find());
