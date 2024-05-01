@@ -5,7 +5,6 @@ const app = express();
 const {MongoClient} = require("mongodb");
 require("dotenv").config({path: "stuff.env"});
 
-
 //opens to cross origin
 const cors = require("cors");
 app.use(cors());
