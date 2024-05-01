@@ -17,9 +17,7 @@ app.use(express.json());
 const port = process.env.port | 27017;
 
 //database connection
-const url = process.env.DB_HOST + ":" + port;
-const user = new MongoClient(url);
-const dbName = process.env.DB_DATABASE;
+const url = process.env.DB_HOST + ":" + port + "/lab3";
 
 //mongoose for schema and stuff
 const mongoose = require("mongoose");
@@ -37,6 +35,9 @@ const jobSchema = mongoose.Schema({
     enddate: Date
 });
 
+//console log
+let apiPort = 3000;
+app.listen(apiPort, () => {console.log("running")});
 
 //model
 const job = mongoose.model("job", jobSchema);
@@ -44,25 +45,10 @@ const job = mongoose.model("job", jobSchema);
 //initial connect for debugging mostly
 async function initialConnect() {
 
-    //tries to connect
-    try {
-        await user.connect();
-        console.log("connection established")   
-    } catch (error) {
-        console.log("USER CONNECTION FAILED");
-        return
-    }
-
-    //gets the database
-    const dbConnection = user.db(dbName);
-
-    //default call to collection
-    let content = dbConnection.collection("jobs");
-
     //populates if empty
-    let val = await content.find().toArray();
+    let val = await job.find();
     if (val.length == 0) {
-        await content.insertMany([
+        await job.create([
             {_id: 1, companyname: "Glassbolaget", jobtitle: "Glassman", startdate:"2022-02-14", enddate:"2022-08-17"},
             {_id: 2, companyname: "Glassbolaget2", jobtitle: "GlassSergant", startdate:"2023-02-14", enddate:"2022-08-17"},
             {_id: 3, companyname: "Glassbolaget3", jobtitle: "GlassGeneral", startdate:"2024-01-14", enddate:"2024-04-24"}
@@ -73,37 +59,16 @@ async function initialConnect() {
 
 initialConnect();
 
-/*
-
-
-//generall function to ask database questions
-function ask(question){
-    //works on asyncronus promises
-    return new Promise((resolve, reject) => {
-        //tries to ask if fail will return error
-        try {
-            connection.query(question, function (error, result) {
-                //if database error  
-                if (error) {
-                    return reject(error);
-                }
-                return resolve(result);
-                })   
-        } catch (e) {
-            reject(e)
-        }
-    })
-}
-
 //removes a database row after id
 async function remove(value){
-    connection.query("DELETE FROM Jobs WHERE id=" + value.body.remove, function(error){if (error) {throw error;}})   
+    await job.deleteOne({_id: value.body.remove});
+    //connection.query("DELETE FROM Jobs WHERE id=" + value.body.remove, function(error){if (error) {throw error;}})   
     return;
 }
 
 //creates a new database row with information
 async function add(values){
-    connection.query("INSERT Jobs VALUES ('" + values.body.id + "','"+ values.body.companyname +"','"+ values.body.jobtitle +"','"+ values.body.startdate + "','"+ values.body.enddate+"')",function(error){if (error) {throw error;}});
+    connection.query("INSERT Jobs VALUES ('" + values.body._id + "','"+ values.body.companyname +"','"+ values.body.jobtitle +"','"+ values.body.startdate + "','"+ values.body.enddate+"')",function(error){if (error) {throw error;}});
     return;
 }
 
@@ -117,14 +82,7 @@ async function update(values){
 
 //gets all data
 app.get("/data", async (req, res) => {
-    let val = await ask("SELECT * FROM Jobs");
-    return res.json(val);
-})
-
-//gets specific information (full mysql call)
-app.get("/data/specific", async (req, res) => {
-    let val = await ask(req);
-    return res.json(val);;
+    res.send(await job.find());
 })
 
 //deletes data
@@ -135,7 +93,11 @@ app.delete("/remove", async (req, res) => {
         return res.json({error: val});
     }
     let num = req.body.remove;
-    await remove(req);
+    try {
+        await job.deleteOne({_id: num});
+    } catch (error) {
+        res.send("IT BROKE");
+    }
     res.json({message: "removed object with id: " + num});
 })
 
@@ -166,7 +128,7 @@ app.post("/add", async (req, res) => {
     }
     await add(req);
     let added = {
-        id: req.body.id,
+        id: req.body._id,
         companyname: req.body.companyname,
         jobtitle: req.body.jobtitle
     }
@@ -176,7 +138,7 @@ app.post("/add", async (req, res) => {
 
 //validates input for add/update with more 1/2 respectively
 async function validate(query, mode) {
-    let size = await ask("SELECT id FROM Jobs")
+    let size = await job.find({_id: {$exists:true}});
     let errors = [];
 
     //loops through the id list to check for matches
@@ -257,4 +219,3 @@ async function validate(query, mode) {
         return "";
     }
 }
-*/
