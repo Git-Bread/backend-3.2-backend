@@ -59,23 +59,9 @@ async function initialConnect() {
 
 initialConnect();
 
-//removes a database row after id
-async function remove(value){
-    await job.deleteOne({_id: value.body.remove});
-    //connection.query("DELETE FROM Jobs WHERE id=" + value.body.remove, function(error){if (error) {throw error;}})   
-    return;
-}
-
 //creates a new database row with information
 async function add(values){
     connection.query("INSERT Jobs VALUES ('" + values.body._id + "','"+ values.body.companyname +"','"+ values.body.jobtitle +"','"+ values.body.startdate + "','"+ values.body.enddate+"')",function(error){if (error) {throw error;}});
-    return;
-}
-
-//updates content of one entry with the update command
-async function update(values){
-    console.log(values);
-    connection.query("UPDATE Jobs SET companyname = '" + values.body.companyname + "', jobtitle = '" + values.body.jobtitle + "', startdate = '" + values.body.startdate + "', enddate = '" + values.body.enddate + "' WHERE id = '" + values.body.id + "'", function(error){if (error) {throw error;}});
     return;
 }
 
@@ -108,14 +94,17 @@ app.put("/update", async (req, res) => {
         res.json({error: val});
         return;
     }
-    await update(req);
+    console.log(req.body.startdate);
+    await job.updateOne({_id: req.body.id}, {companyname: req.body.companyname, jobtitle: req.body.jobtitle, startdate: req.body.startdate, enddate: req.body.enddate});
+
     let updated = {
         id: req.body.id,
         companyname: req.body.companyname,
         jobtitle: req.body.jobtitle,
-        companyname: req.body.startDate,
-        jobtitle: req.body.enddate
+        startdate: req.body.startdate,
+        enddate: req.body.enddate
     }
+    console.log(updated);
     res.json({message: "updated: ", updated});
 })
 
@@ -126,9 +115,9 @@ app.post("/add", async (req, res) => {
         res.json({error: val});
         return;
     }
-    await add(req);
+    await job.create({_id: req.body.id, companyname: req.body.companyname, jobtitle: req.body.jobtitle, startdate: req.body.startdate, enddate: req.body.enddate});
     let added = {
-        id: req.body._id,
+        id: req.body.id,
         companyname: req.body.companyname,
         jobtitle: req.body.jobtitle
     }
