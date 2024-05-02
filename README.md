@@ -5,7 +5,6 @@ har tagits bort mer kod än det tillagts. Behandlar data i samma format som tidi
 
 ## Operationer
 ### /data returnerar allt inehåll ifrån databasen (GET)
-### /data/specific låter dig skicka ett fullt mysql anrop, används inte i uppgiften efter men den finns (GET)
 ### /remove tar bort ett inlägg som delar numret som skickas med ett object som inehåller remove: NUMBER (DELETE)
 ### /update Updaterar inehållet inom en rad i databasen baserat på ett nytt object skickat som följer formfaktorn {id: num, companyname: name, jobtitle: name, startdate: date, enddate: date}, måste överstemma med existerande id (PUT)
 ### /add lägger till ett nytt inlägg i databasen såvida den följer samma formfaktor som ovan (POST)
